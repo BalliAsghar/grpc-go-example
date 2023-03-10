@@ -8,6 +8,7 @@ import (
 	pb "github.com/BalliAsghar/micro/product"
 	"github.com/fatih/color"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type productServiceServer struct {
@@ -52,6 +53,8 @@ func main() {
 	}
 	s := grpc.NewServer()
 	pb.RegisterProductServiceServer(s, &productServiceServer{})
+	reflection.Register(s)
+
 	log.Printf("Starting gRPC server on port 8080")
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
