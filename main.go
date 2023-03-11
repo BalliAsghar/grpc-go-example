@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"time"
 
 	pb "github.com/BalliAsghar/micro/product"
 	"github.com/fatih/color"
@@ -13,6 +14,21 @@ import (
 
 type productServiceServer struct {
 	pb.UnimplementedProductServiceServer
+}
+
+func loggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	startTime := time.Now()
+
+	// Call the handler to execute the gRPC method
+	h, err := handler(ctx, req)
+
+	// Log the gRPC method call
+	Success.Printf("[GRPC Server] ")
+	Error.Printf("%s ", time.Now().Format("2006-01-02 15:04:05"))
+	Info.Printf("Method: %s ", info.FullMethod)
+	Warn.Println("Duration:", time.Since(startTime))
+
+	return h, err
 }
 
 // Colour variables
@@ -51,7 +67,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(loggingInterceptor),
+	)
 	pb.RegisterProductServiceServer(s, &productServiceServer{})
 	reflection.Register(s)
 
